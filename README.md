@@ -17,4 +17,4 @@ NodeJS/JavaScript
 Doesn't save data over long periods of time 
 
 # How to use it:
-...
+https://documenter.getpostman.com/view/9574173/TVmQcvLB
