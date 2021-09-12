@@ -138,7 +138,7 @@ response.data.results.map(result => {
       console.log(err)
     }
     else{
-      res.status(200).json(data)
+      res.status(200).json(data["Items"])
     }
   })
 
@@ -151,6 +151,20 @@ router.get('/users', (req, res) => {
 .catch(err => {
   res.status(500).json({ message: 'Failed to get projects' });
 })
+})
+router.get('/reccommended_sneakers/:sneaker_id', (req, res) => {
+  dynamoDB.scan({TableName: "Heir-Feet-Sneakers"}, function(err, data) {
+    if (err){
+      console.log(err)
+    }
+    else{
+      let sneaker_data = data["Items"].filter(item => item.id !== req.params.sneaker_id)
+      let sneaker = data["Items"].filter(item => item.id === req.params.sneaker_id)[0]
+      let reccommended = sneaker_data.filter(item => item.colorway === sneaker.colorway)
+      sneaker_data.filter(item => item.brand === sneaker.brand && Math.abs(item.retailPrice - sneaker.retailPrice) <= 50).map(sneaker => reccommended.push(sneaker))
+      res.status(200).json(reccommended)
+    }
+  })
 })
 router.post('/orders', (req, res) => {
   var today = new Date();
