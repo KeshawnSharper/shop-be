@@ -12,7 +12,7 @@ const axios = require("axios")
 require('dotenv').config()
 const AWS = require("aws-sdk")
 router.use(cors());
-const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID } =
+const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD } =
   process.env;
   AWS.config.update({
     accessKeyId: AWS_ACCESS,
@@ -25,40 +25,53 @@ router.post('/register', (req, res) => {
   let user = req.body
   let hash = bcrypt.hashSync(user.password,13)
   user.password = hash 
-  data.register(user)
-  .then(project => {
-    res.status(201).json(project)
+  console.log(user)
+  dynamoDB.scan({TableName: "Heir-feet-users"},function(err,data){
+    if (err){
+      console.log(err)
+    }
+    else{
+      console.log(data["Count"])
+      user.id = `${data["Count"] + 1}`
+      dynamoDB.put({TableName: "Heir-feet-users",Item:user},function(err,data){
+        if (err){
+          console.log(err)
+        }
+        else{
+          res.status(201).json({"email":user.email,
+          "id":user.id,
+          "user_name":user.user_name,})
+        }
+      })
+    }
+  })
    })
-.catch(err => {
-res.status(500).json({ message: 'Failed to get schemes' })
-})
 
-})
 router.post('/login', (req, res) => {
   let body = req.body
-  console.log(body)
-  data.login(body)
-  .first()
-  .then(user => {
-    console.log(user)
-    const payload = {
-      userid:user.id,
-      username:user.username
+  dynamoDB.scan({TableName: "Heir-feet-users"},function(err,data){
+    if (err){
+      console.log(err)
     }
-    const options = {
-      expiresIn:"1d"
+    else{
+      let loggedIn = data["Items"].filter(user => user.email === body.email)[0]
+      
+      if (loggedIn && bcrypt.compareSync(body.password,loggedIn.password))
+      {
+        const payload = {
+          userid:loggedIn.id,
+          username:loggedIn.user_name
+        }
+        const options = {
+          expiresIn:"1d"
+        }
+        const token = jwt.sign(payload,"secret",options)
+        res.status(200).json({email:loggedIn.email,token:token,id:loggedIn.id,user_name:loggedIn.user_name})}
+     else {
+       res.status(404).json({message:`invalid creditinials`})
+     }
     }
-    const token = jwt.sign(payload,"secret",options)
-    if (user && bcrypt.compareSync(body.password,user.password))
-    {res.status(200).json({email:body.email,token:token,userid:user.id,first_name:user.first_name,last_name:user.last_name})}
-   else {
-     res.status(404).json({message:`invalid creditinials`})
-   }
   })
-  .catch(err => {
-    res.status(500).json({ message: err })
-    console.log(err)
-  });
 });
 router.get("/sneakers", (req,res) => {
   const dateInPast = function(firstDate, secondDate) {
@@ -167,34 +180,42 @@ router.get('/reccommended_sneakers/:sneaker_id', (req, res) => {
   })
 })
 router.post('/orders', (req, res) => {
-  var today = new Date();
+  
   req.body.delivered = false
-  console.log('req.body',req.body)
-  data.purchase(req.body)
-  .then(project => {
-    res.status(201).json(project)
+  console.log(req.body)
+
+  dynamoDB.scan({TableName: "Heir-Feet-Orders"}, function(err, data) {
+    if (err){
+      console.log(err)
+    }
+    else{
+      req.body.id = `${data["Count"] + 1}`
+  dynamoDB.put({TableName: "Heir-Feet-Orders",Item:req.body},function(err,data){
+    if (err){
+      console.log(err)
+    }
+    else{
+      console.log(data)
+    }
   })
-  .catch(err => {
-    res.status(500).json({ message: err });
-  });
+}})
 })
 router.get('/orders/:id', (req, res) => {
-  console.log(req.params.id)
-  data.getOrders(req.params.id)
-  .then(project => {
-    res.status(200).json(project)
+  dynamoDB.scan({TableName: "Heir-Feet-Orders"}, function(err, data) {
+    if (err){
+      console.log(err)
+    }
+    else{
+      let items = data["Items"].filter(item => Number(req.params.id) === Number(item.user_id))
+      res.status(200).json(items)
+    }
   })
-  .catch(err => {
-    res.status(500).json({ message: 'Failed to get schemes' });
-  });
 })
-router.post("/checkout", (req, res) => {
- 
-
-  
+router.post("/checkout", async(req, res) => {
     const { product, token } = req.body;
     console.log("Request:", product);
     console.log("price:", product.price);
+    let testAccount = await nodemailer.createTestAccount();
     const idempotencyKey = uuid();
     return stripe.customers.create({
       email: token.email,
@@ -226,6 +247,30 @@ router.post("/checkout", (req, res) => {
       }
     )
     .then(project => {
+      console.log(GOOGLE_PASSWORD)
+      var transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+            user: 'ksharper@studentmba.org',
+            pass: GOOGLE_PASSWORD
+        }
+    });
+      console.log("hello",req.body.token)
+      let message = {
+        from: "ksharper@studentmba.org",
+        to: req.body.token.email,
+        subject: "Payment Confirmation from Heir Feet",
+        text: `Hello your payment of ${req.body.product.price} has been accepted`,
+        html: `Hello your payment of  $${req.body.product.price} has been accepted`
+      };
+      transporter.sendMail(message,(err,res) => {
+        if(err){
+          console.log(err)
+        }
+        else{
+          console.log(res)
+        }
+      })
       console.log("usd")
       res.status(200).json({status:"success"})})
     .catch(err => {
@@ -235,43 +280,17 @@ router.post("/checkout", (req, res) => {
 })
 router.delete('/orders/:id', (req, res) => {
   console.log(req.params.id)
-  data.deleteOrder(req.params.id)
-  .then(project => {
-    res.status(200).json(project)
-  })
-  .catch(err => {
-    res.status(500).json({ message: 'Failed to get schemes' });
-  });
-})
-router.post('/email', (req, res) => {
-  
-  // let transporter = nodemailer.createTransport({
-  //   host: "smtp.example.com",
-  //   port: 587,
-  //   secure: false, // upgrade later with STARTTLS
-  //   auth: {
-  //     user: "ciara.pagac32@ethereal.email",
-  //     pass: "fEfGBS1xK5FY9AssS"
-  //   }
-  // }); 
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    auth: {
-        user: 'ciara.pagac32@ethereal.email',
-        pass: 'fEfGBS1xK5FY9AssSs'
+  dynamoDB.delete({TableName:"Heir-Feet-Orders",Key:{"id":`${req.params.id}`}},function(err, data) {
+    if (err) {
+      console.log(err)
+      res.status(500).json(console.log(err));
+    } else { 
+      res.status(200).json({status:"success"})
+      console.log("success")
     }
-});
-  //  console.log(body)
-  var message = {
-    from: "ciara.pagac32@ethereal.email",
-    to: "ksharper@studentmba.org",
-    subject: "Message title",
-    text: "Plaintext version of the message",
-    html: "<p>HTML version of the message</p>"
-  }
-  transporter.sendMail(message)
+  })
 })
+
 
 
 module.exports = router
