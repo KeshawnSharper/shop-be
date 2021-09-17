@@ -182,14 +182,16 @@ router.get('/reccommended_sneakers/:sneaker_id', (req, res) => {
 router.post('/orders', (req, res) => {
   
   req.body.delivered = false
-  console.log(req.body)
+  
 
   dynamoDB.scan({TableName: "Heir-Feet-Orders"}, function(err, data) {
     if (err){
       console.log(err)
     }
     else{
-      req.body.id = `${data["Count"] + 1}`
+      req.body.id = `${data["Count"] + 1 + req.body.index}`
+      delete req.body["index"]
+      console.log(req.body)
   dynamoDB.put({TableName: "Heir-Feet-Orders",Item:req.body},function(err,data){
     if (err){
       console.log(err)
