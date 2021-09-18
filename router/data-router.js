@@ -1,17 +1,14 @@
 const express = require('express');
-
 const data = require('./data-model')
 const stripe = require("stripe")("sk_test_51GmhlnFRrEOe5mtdlcYDHkwrPCnMNlIwXO7hNQ3uTqtk6z9MIoMRyq1Rwcq3rI7Ksx5FSMZDISG9jh0ZtWOJuzBa00uW25XNv8");
 const router = express.Router();
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
-const cors = require("cors")
 const { v4: uuid } = require('uuid');
 const nodemailer = require('nodemailer');
 const axios = require("axios")
 require('dotenv').config()
 const AWS = require("aws-sdk")
-router.use(cors());
 const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD } =
   process.env;
   AWS.config.update({
