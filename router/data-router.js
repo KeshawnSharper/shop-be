@@ -84,8 +84,7 @@ router.get("/sneakers", (req,res) => {
       console.log(err)
     } else {
       console.log(new Date())
-      console.log(data.Items[0].last_updated)
-      if (dateInPast(new Date(data.Items[0].last_updated),new Date())) {
+      if (dateInPast(new Date(data.Items[0].last_updated),new Date()) || data.Count === 0) {
         var date = new Date();
         date.setDate(date.getDate() + 7)
         var params = {
