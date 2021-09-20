@@ -71,6 +71,7 @@ router.post('/login', (req, res) => {
   })
 });
 router.get("/sneakers", (req,res) => {
+  console.log(new Date())
   const dateInPast = function(firstDate, secondDate) {
     if (firstDate.setHours(0, 0, 0, 0) <= secondDate.setHours(0, 0, 0, 0)) {
       return true;
@@ -84,7 +85,8 @@ router.get("/sneakers", (req,res) => {
       console.log(err)
     } else {
       console.log(new Date())
-      if (dateInPast(new Date(data.Items[0].last_updated),new Date()) || data.Count === 0) {
+      console.log(data.Items[0].last_updated)
+      if (dateInPast(new Date(data.Items[0].last_updated),new Date())) {
         var date = new Date();
         date.setDate(date.getDate() + 7)
         var params = {
