@@ -78,7 +78,7 @@ router.get("/sneakers", (req,res) => {
   }
   dynamoDB.scan({TableName: "Heir-feet-updates"}, function(err, data) {
     if (err) {
-      console.log(AWS_ACCESS,AWS_REGION_ID,AWS_SECRET)
+      console.log(AWS.config)
       console.log(err)
     } else {
       console.log(new Date())
