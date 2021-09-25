@@ -19,7 +19,6 @@ const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD } =
 const dynamoDB = new AWS.DynamoDB.DocumentClient()
 router.post('/register', (req, res) => {
   let user = req.body
-  console.log(req)
   let hash = bcrypt.hashSync(user.password,13)
   user.password = hash 
   dynamoDB.scan({TableName: "Heir-feet-users"},function(err,data){
