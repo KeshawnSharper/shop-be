@@ -18,21 +18,19 @@ const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD } =
 });
 const dynamoDB = new AWS.DynamoDB.DocumentClient()
 router.post('/register', (req, res) => {
-  console.log(req.body)
   let user = req.body
+  console.log(req)
   let hash = bcrypt.hashSync(user.password,13)
   user.password = hash 
-  console.log(user)
   dynamoDB.scan({TableName: "Heir-feet-users"},function(err,data){
     if (err){
-      console.log(err)
+      res.status(500)
     }
     else{
-      console.log(data["Count"])
       user.id = `${data["Count"] + 1}`
       dynamoDB.put({TableName: "Heir-feet-users",Item:user},function(err,data){
         if (err){
-          console.log(err)
+          res.status(500)
         }
         else{
           res.status(201).json({"email":user.email,
@@ -154,15 +152,7 @@ response.data.results.map(result => {
   })
 
 })
-router.get('/users', (req, res) => {
-  data.getUsers()
-.then(data => {
-  res.status(200).json(data);
-})
-.catch(err => {
-  res.status(500).json({ message: 'Failed to get projects' });
-})
-})
+
 router.get('/reccommended_sneakers/:sneaker_id', (req, res) => {
   dynamoDB.scan({TableName: "Heir-Feet-Sneakers"}, function(err, data) {
     if (err){
