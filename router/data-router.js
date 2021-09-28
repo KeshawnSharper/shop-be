@@ -303,9 +303,9 @@ router.post('/email/:business_name', (req, res) => {
       res.status(500).json({status:"success"})
     }
     else{
-      res.status(200).json({status:"success"})
     }
   })
+  res.status(200).json({status:"success"})
 })
 
 
