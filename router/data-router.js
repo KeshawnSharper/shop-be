@@ -9,7 +9,7 @@ const nodemailer = require('nodemailer');
 const axios = require("axios")
 require('dotenv').config()
 const AWS = require("aws-sdk")
-const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD } =
+const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD, EMAIL_BOT_PASSWORD } =
   process.env;
   AWS.config.update({
     accessKeyId: AWS_ACCESS,
@@ -276,6 +276,34 @@ router.delete('/orders/:id', (req, res) => {
     } else { 
       res.status(200).json({status:"success"})
       console.log("success")
+    }
+  })
+})
+router.post('/email/:business_name', (req, res) => {
+  if (req.params.business_name === "Deion"){
+    console.log(EMAIL_BOT_PASSWORD)
+    var transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+          user: 'diondetailingemailbot@gmail.com',
+          pass: EMAIL_BOT_PASSWORD
+      }
+  });
+  }
+  console.log(req.body)
+  let message = {
+    from: "diondetailingemailbot@gmail.com",
+    to: "diondetailingemailbot@gmail.com",
+    subject:req.body.subject,
+    text: req.body.message,
+    html: req.body.message
+  };
+  transporter.sendMail(message,(err,res) => {
+    if(err){
+      res.status(500).json({status:"success"})
+    }
+    else{
+      res.status(200).json({status:"success"})
     }
   })
 })
