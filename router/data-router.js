@@ -293,7 +293,7 @@ router.post('/email/:business_name', (req, res) => {
   console.log(req.body)
   let message = {
     from: "diondetailingemailbot@gmail.com",
-    to: "dows6726@gmail.comCH",
+    to: "dows6726@gmail.com",
     subject:req.body.subject,
     text: req.body.message,
     html: req.body.message
