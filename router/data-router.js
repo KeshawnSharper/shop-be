@@ -15,7 +15,7 @@ const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD, EMAIL_BOT_PASSWORD
     accessKeyId: AWS_ACCESS,
     secretAccessKey: AWS_SECRET,
     region: AWS_REGION_ID
-});
+})
 const dynamoDB = new AWS.DynamoDB.DocumentClient()
 router.post('/register', (req, res) => {
   let user = req.body
