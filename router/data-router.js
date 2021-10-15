@@ -17,32 +17,37 @@ const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD, EMAIL_BOT_PASSWORD
     region: AWS_REGION_ID
 })
 const dynamoDB = new AWS.DynamoDB.DocumentClient()
-router.post('/register', (req, res) => {
-  let user = req.body
-  let hash = bcrypt.hashSync(user.password,13)
-  user.password = hash 
-  dynamoDB.scan({TableName: "Heir-feet-users"},function(err,data){
-    if (err){
-      res.status(500)
-    }
-    else{
-      user.id = `${data["Count"] + 1}`
-      dynamoDB.put({TableName: "Heir-feet-users",Item:user},function(err,data){
-        if (err){
-          res.status(500)
-        }
-        else{
-          res.status(201).json({"email":user.email,
-          "id":user.id,
-          "user_name":user.user_name,})
-        }
-      })
-    }
-  })
-   })
+let scanDB = async (table,filterID,filterProp) => {
+  let items = await dynamoDB.scan({TableName: table}).promise()
+  items = items["Items"]
+  if (filterID !== null){
+    items = items.filter(item => item[`${filterProp}`] === filterID)
+  }
+  return items
 
-router.post('/login', (req, res) => {
+}
+let putDB = async (table,item) => {
+  await dynamoDB.put({TableName: table,Item:item}).promise()
+}
+router.post('/register', async(req, res) => {
   let body = req.body
+  let filterUsers = await scanDB("Heir-feet-users",req.body.email,"email")
+  let users = await scanDB("Heir-feet-users")
+  // check if an user already exist 
+  if (filterUsers.length > 0){
+    res.status(500).json({"message":"user already exists"})
+  }
+  else{
+  let hash = bcrypt.hashSync(body.password,13)
+  body.password = hash 
+  body.id = `${users.length + 1}`
+  console.log(body)
+  await putDB("Heir-feet-users",body)
+  res.status(201).json({"email":body.email,"id":`${users.length + 1}`,"user_name":body.user_name,})}})
+
+router.post('/login', async (req, res) => {
+  let body = req.body
+  
   dynamoDB.scan({TableName: "Heir-feet-users"},function(err,data){
     if (err){
       console.log(err)
