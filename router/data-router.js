@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign(payload,"secret",options)
         res.status(200).json({email:loggedIn.email,token:token,id:loggedIn.id,user_name:loggedIn.user_name})}
      else {
-       res.status(404).json({message:`invalid creditinials`})
+       res.status(404).json({message:`Invalid Credentials`})
      }
     }
 });
