@@ -35,7 +35,7 @@ router.post('/register', async(req, res) => {
   let users = await scanDB("Heir-feet-users")
   // check if an user already exist 
   if (filterUsers.length > 0){
-    res.status(500).json({"message":"user already exists"})
+    res.status(500).json({"message":"User already exists"})
   }
   else{
   let hash = bcrypt.hashSync(body.password,13)
@@ -47,13 +47,12 @@ router.post('/register', async(req, res) => {
 
 router.post('/login', async (req, res) => {
   let body = req.body
-  
-  dynamoDB.scan({TableName: "Heir-feet-users"},function(err,data){
-    if (err){
-      console.log(err)
-    }
+  let filterUsers = await scanDB("Heir-feet-users",req.body.email,"email")
+  if (filterUsers.length === 0){
+    res.status(500).json({"message":"User doesn't exists"})
+  }
     else{
-      let loggedIn = data["Items"].filter(user => user.email === body.email)[0]
+      let loggedIn = filterUsers[0]
       
       if (loggedIn && bcrypt.compareSync(body.password,loggedIn.password))
       {
@@ -70,7 +69,6 @@ router.post('/login', async (req, res) => {
        res.status(404).json({message:`invalid creditinials`})
      }
     }
-  })
 });
 router.get("/sneakers", (req,res) => {
   console.log(new Date())
