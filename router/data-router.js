@@ -5,7 +5,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const { v4: uuid } = require('uuid');
-const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer')
 const axios = require("axios")
 require('dotenv').config()
 const AWS = require("aws-sdk")
