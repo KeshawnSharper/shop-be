@@ -1,5 +1,5 @@
 const express = require('express');
-const data = require('./data-model')
+// const data = require('./data-model')
 const stripe = require("stripe")("sk_test_51GmhlnFRrEOe5mtdlcYDHkwrPCnMNlIwXO7hNQ3uTqtk6z9MIoMRyq1Rwcq3rI7Ksx5FSMZDISG9jh0ZtWOJuzBa00uW25XNv8");
 const router = express.Router();
 const bcrypt = require("bcryptjs")
@@ -84,9 +84,11 @@ router.get("/sneakers", (req,res) => {
       console.log(AWS.config)
       console.log(err)
     } else {
-      console.log(new Date())
-      console.log(data.Items[0].last_updated)
-      if (dateInPast(new Date(data.Items[0].last_updated),new Date())) {
+      // if (data.items === []){
+
+      // }
+    
+      if (data.Items.length === 0 || dateInPast(new Date(data.Items[0].last_updated),new Date())) {
         var date = new Date();
         date.setDate(date.getDate() + 7)
         var params = {
@@ -266,6 +268,7 @@ router.post("/checkout", async(req, res) => {
       console.log("usd")
       res.status(200).json({status:"success"})})
     .catch(err => {
+      console.log(err)
       res.status(500).json(console.log(err));
     });
  
