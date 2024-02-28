@@ -41,12 +41,14 @@ router.post('/register', async(req, res) => {
   let hash = bcrypt.hashSync(body.password,13)
   body.password = hash 
   body.id = `${users.length + 1}`
+  body.email = body.email.toLowerCase()
   console.log(body)
   await putDB("Heir-feet-users",body)
   res.status(201).json({"email":body.email,"id":`${users.length + 1}`,"user_name":body.user_name,})}})
 
 router.post('/login', async (req, res) => {
   let body = req.body
+  body.email = body.email.toLowerCase()
   let filterUsers = await scanDB("Heir-feet-users",req.body.email,"email")
   if (filterUsers.length === 0){
     res.status(500).json({"message":"User doesn't exists"})
@@ -81,14 +83,16 @@ router.get("/sneakers", (req,res) => {
   }
   dynamoDB.scan({TableName: "Heir-feet-updates"}, function(err, data) {
     if (err) {
+      
       console.log(AWS.config)
       console.log(err)
     } else {
       // if (data.items === []){
 
       // }
-    
+      console.log(data.Items)
       if (data.Items.length === 0 || dateInPast(new Date(data.Items[0].last_updated),new Date())) {
+        
         var date = new Date();
         date.setDate(date.getDate() + 7)
         var params = {
@@ -124,13 +128,14 @@ router.get("/sneakers", (req,res) => {
   }
 )
 .then((response) => {
+  console.log(response)
 response.data.results.map(result => {
   dynamoDB.put({TableName: "Heir-Feet-Sneakers",Item:result},function(err,data){
     if (err){
       console.log(err)
     }
     else{
-
+      console.log(result)
     }
   })
 })
@@ -148,9 +153,12 @@ response.data.results.map(result => {
   })
   dynamoDB.scan({TableName: "Heir-Feet-Sneakers"}, function(err, data) {
     if (err){
+      
       console.log(err)
     }
     else{
+      console.log("here")
+      console.log(data["Items"])
       res.status(200).json(data["Items"])
     }
   })
