@@ -31,7 +31,8 @@ router.post('/', async(req, res) => {
       user.password = hash 
       user.re_password = hash
       let users = awsUsers.total_items
-      user.id = `${users.length + 1}`
+      console.log("users",users)
+      user.id = `${users.total_items.length + 1}`
       await putDB("Heir-feet-users",user)
       res.status(201).json({"message":"success"})
       return

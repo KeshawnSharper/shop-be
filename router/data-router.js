@@ -17,18 +17,7 @@ const { AWS_ACCESS, AWS_SECRET,AWS_REGION_ID,GOOGLE_PASSWORD, EMAIL_BOT_PASSWORD
     region: AWS_REGION_ID
 })
 const dynamoDB = new AWS.DynamoDB.DocumentClient()
-let scanDB = async (table,filterID,filterProp) => {
-  let items = await dynamoDB.scan({TableName: table}).promise()
-  items = items["Items"]
-  if (filterID !== null){
-    items = items.filter(item => item[`${filterProp}`] === filterID)
-  }
-  return items
-
-}
-let putDB = async (table,item) => {
-  await dynamoDB.put({TableName: table,Item:item}).promise()
-}
+const {scanDB,putDB} = require("./awsFunctions")
 router.post('/register', async(req, res) => {
   let body = req.body
   let filterUsers = await scanDB("Heir-feet-users",req.body.email,"email")
@@ -40,7 +29,7 @@ router.post('/register', async(req, res) => {
   else{
   let hash = bcrypt.hashSync(body.password,13)
   body.password = hash 
-  body.id = `${users.length + 1}`
+  body.id = `${users.total_items.length + 1}`
   body.email = body.email.toLowerCase()
   console.log(body)
   await putDB("Heir-feet-users",body)
@@ -49,13 +38,15 @@ router.post('/register', async(req, res) => {
 router.post('/login', async (req, res) => {
   let body = req.body
   body.email = body.email.toLowerCase()
+  console.log(body)
   let filterUsers = await scanDB("Heir-feet-users",req.body.email,"email")
-  if (filterUsers.length === 0){
+  console.log(filterUsers)
+  if (filterUsers.selected_items.length === 0){
     res.status(500).json({"message":"User doesn't exists"})
   }
     else{
-      let loggedIn = filterUsers[0]
-      
+      let loggedIn = filterUsers.selected_items[0]
+      console.log(loggedIn)
       if (loggedIn && bcrypt.compareSync(body.password,loggedIn.password))
       {
         const payload = {
@@ -66,7 +57,7 @@ router.post('/login', async (req, res) => {
           expiresIn:"1d"
         }
         const token = jwt.sign(payload,"secret",options)
-        res.status(200).json({email:loggedIn.email,token:token,id:loggedIn.id,user_name:loggedIn.user_name})}
+        res.status(200).json({id:loggedIn.id,email:loggedIn.email,token:token,user:{id:loggedIn.id,user_name:loggedIn.user_name,email:loggedIn.email}})}
      else {
        res.status(404).json({message:`Invalid Credentials`})
      }
@@ -81,7 +72,7 @@ router.get("/sneakers", (req,res) => {
   
     return false;
   }
-  dynamoDB.scan({TableName: "Heir-feet-updates"}, function(err, data) {
+  scanDB({TableName: "Heir-feet-updates"}, function(err, data) {
     if (err) {
       
       console.log(AWS.config)

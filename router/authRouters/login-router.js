@@ -11,6 +11,7 @@ const router = express.Router();
 
 router.post(`/`, async(req, res) => {
   console.log("login")
+
   res.set('Access-Control-Allow-Origin', '*');
     try{
     let user = req.body
