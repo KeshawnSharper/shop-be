@@ -14,7 +14,11 @@ const { response } = require("express");
 const { DeleteCommand,PutCommand, DynamoDBDocumentClient,ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const {getPrimitiveType} = globalFunctions
 
-const client = new DynamoDBClient({});
+const client = new DynamoDBClient({
+  credentials:{accessKeyId: process.env.AWS_ACCESS,
+  secretAccessKey: process.env.AWS_SECRET},
+  region: 'us-east-2'
+});
 const docClient = DynamoDBDocumentClient.from(client);
 
 module.exports ={

@@ -206,6 +206,7 @@ router.get('/orders/:id', (req, res) => {
 })
 router.post("/checkout", async(req, res) => {
     const { product, token } = req.body;
+
     console.log("Request:", product);
     console.log("price:", product.price);
     let testAccount = await nodemailer.createTestAccount();
@@ -217,7 +218,7 @@ router.post("/checkout", async(req, res) => {
       customer => {
         stripe.charges.create(
           {
-            amount: product.price * 100,
+            amount: Math.round(product.price * 100),
             currency: "usd",
             customer: customer.id,
             receipt_email: token.email,
