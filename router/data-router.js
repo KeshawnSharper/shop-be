@@ -207,7 +207,7 @@ router.get('/orders/:id', (req, res) => {
 router.post("/checkout", async(req, res) => {
     const { product, token } = req.body;
 
-    console.log("Request:", product);
+    console.log("Request:", product)
     console.log("price:", product.price);
     let testAccount = await nodemailer.createTestAccount();
     const idempotencyKey = uuid();
