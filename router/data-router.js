@@ -208,7 +208,7 @@ router.post("/checkout", async(req, res) => {
     const { product, token } = req.body;
 
     console.log("Request:", product)
-    console.log("price:", product.price);
+    console.log("price:", product.price)
     let testAccount = await nodemailer.createTestAccount();
     const idempotencyKey = uuid();
     return stripe.customers.create({
